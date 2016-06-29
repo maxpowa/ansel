@@ -559,6 +559,6 @@ module ANSEL
     }
 
     ANSI_TO_UTF16_MAP = NON_COMBINING.merge(COMBINING)
-    UTF16_TO_ANSI_MAP = ANSI_TO_UTF16_MAP.clone.invert
+    UTF16_TO_ANSI_MAP = ANSI_TO_UTF16_MAP.invert
   end
 end
