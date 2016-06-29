@@ -17,15 +17,20 @@ module ANSEL
     def self.convert(input : IO, to_charset : String = "ANSEL") : String
       io = MemoryIO.new
       convert(input_io: input, output_io: io, to_charset: to_charset)
-      String.new(io.to_slice)
+      io
     end
 
-    def self.convert(string : String, output_io : IO, to_charset : String)
+    def self.convert(string : String, output_io : IO, to_charset : String = "ANSEL")
       input_io = MemoryIO.new(string)
       convert(input_io: input_io, output_io: output_io, to_charset: to_charset)
     end
 
-    def self.convert(input_io : IO, output_io : IO, to_charset : String)
+    def self.convert(bytes : Bytes, output_io : IO, to_charset : String = "ANSEL")
+      input_io = MemoryIO.new(String.new(bytes))
+      convert(input_io: input_io, output_io: output_io, to_charset: to_charset)
+    end
+
+    def self.convert(input_io : IO, output_io : IO, to_charset : String = "ANSEL")
       if to_charset.upcase == "ANSEL"
         convert_to_ansel(input_io, output_io)
       elsif to_charset.upcase == "UTF-8"
@@ -72,9 +77,7 @@ module ANSEL
               output_io.write_byte(b)
             end
           else
-            "�".bytes.each do |byte|
-              output_io.write_byte(byte)
-            end
+            output_io.write("�".to_slice)
           end
         when 0xE0..0xFB
           [2, 1, 0].each do |n| # try 3 bytes, then 2 bytes, then 1 byte
@@ -86,17 +89,15 @@ module ANSEL
             io.seek(-n, IO::Seek::Current)
             if ANSI_TO_UTF16_MAP.has_key?(bytes)
               c = ANSI_TO_UTF16_MAP[bytes]
-              int32_to_uint8(c) { |b|
+              int32_to_uint8(c) do |b|
                 output_io.write_byte(b)
-              }
+              end
               break
             end
             io.seek(-n, IO::Seek::Current)
           end
         else
-          "�".bytes.each do |byte|
-            output_io.write_byte(byte)
-          end
+          output_io.write("�".to_slice)
         end
       end
     end
