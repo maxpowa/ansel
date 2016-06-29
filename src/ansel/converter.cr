@@ -16,7 +16,7 @@ module ANSEL
 
     def self.convert(input : IO, to_charset : String = "ANSEL") : String
       io = MemoryIO.new
-      convert(string, output_io: output_io, to_charset: to_charset)
+      convert(input_io: input, output_io: io, to_charset: to_charset)
       String.new(io.to_slice)
     end
 
@@ -68,9 +68,9 @@ module ANSEL
         when 0x88..0xC8
           if ANSI_TO_UTF16_MAP.has_key?(byte)
             c = ANSI_TO_UTF16_MAP[byte]
-            int32_to_uint8(c) { |b|
+            int32_to_uint8(c) do |b|
               output_io.write_byte(b)
-            }
+            end
           else
             "�".bytes.each do |byte|
               output_io.write_byte(byte)
