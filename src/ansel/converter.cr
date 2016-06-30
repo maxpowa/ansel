@@ -42,7 +42,6 @@ module ANSEL
 
     def self.convert_to_ansel(io, output_io)
       io.each_char do |char|
-        char_hex = char.ord.to_s(16, upcase: true)
 
         case char.ord
         when 0x00..0x7F
@@ -54,18 +53,15 @@ module ANSEL
               output_io.write_byte(byte)
             }
           else
-            "?".bytes.each do |byte|
-              output_io.write_byte(byte)
-            end
+            output_io.write("?".to_slice)
           end
         end
+
       end
     end
 
     def self.convert_to_utf8(io, output_io)
       io.each_byte do |byte|
-        char = byte.unsafe_chr
-        char_hex = char.ord.to_s(16, upcase: true)
 
         case byte
         when 0x00..0x7F
@@ -81,7 +77,7 @@ module ANSEL
           end
         when 0xE0..0xFB
           [2, 1, 0].each do |n| # try 3 bytes, then 2 bytes, then 1 byte
-          # Seek back one to get current byte
+            # Seek back one to get current byte
             io.seek(-1, IO::Seek::Current)
             # Get n+1 to get current byte and amount
             bytes = arrint8_to_uint32(io.gets(n + 1).as(String).bytes)
@@ -94,7 +90,6 @@ module ANSEL
               end
               break
             end
-            io.seek(-n, IO::Seek::Current)
           end
         else
           output_io.write("�".to_slice)
