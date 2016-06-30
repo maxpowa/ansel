@@ -20,8 +20,8 @@ dependencies:
 ```crystal
 require "ansel"
 
-ANSEL::Converter.convert("UTF-8 string") # Outputs Slice(UInt8) of ANSEL bytes
-ANSEL::Converter.convert("String of ANSEL bytes", to_charset: "UTF-8") # Outputs Slice(UInt8) of UTF-8 bytes
+ANSEL::Converter.convert("UTF-8 string") # Outputs String of ANSEL bytes
+ANSEL::Converter.convert("String of ANSEL bytes", to_charset: "UTF-8") # Outputs String of UTF-8 bytes
 ANSEL::Converter.convert("UTF-8 string", output_io: STDOUT) # Outputs ANSEL bytes to STDOUT
 ANSEL::Converter.convert("String of ANSEL bytes", output_io: STDOUT, to_charset: "UTF-8") # Outputs UTF-8 bytes to STDOUT
 ```
