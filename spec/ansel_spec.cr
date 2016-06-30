@@ -2,79 +2,90 @@ require "./spec_helper"
 require "power_assert"
 require "spec2"
 
+Spec2.doc
+Spec2.random_order
+
 Spec2.describe ANSEL::Converter do
+  describe "#arrint8_to_uint32" do
+    it "converts variable length arrays of Int8/UInt8 to a UInt32" do
+      expect(ANSEL::Converter.arrint8_to_uint32([0x01.to_u8, 0x00.to_u8, 0x00.to_u8, 0x00.to_u8])).to eq 0x01000000
+      expect(ANSEL::Converter.arrint8_to_uint32([0x01.to_u8, 0x01.to_u8, 0x00.to_u8, 0x00.to_u8])).to eq 0x01010000
+      expect(ANSEL::Converter.arrint8_to_uint32([0x01.to_u8, 0x01.to_u8, 0x01.to_u8, 0x00.to_u8])).to eq 0x01010100
+      expect(ANSEL::Converter.arrint8_to_uint32([0x01.to_u8, 0x01.to_u8, 0x01.to_u8, 0x01.to_u8])).to eq 0x01010101
+      expect(ANSEL::Converter.arrint8_to_uint32([0x01.to_u8, 0x01.to_u8, 0x01.to_u8, 0x01.to_u8, 0x01.to_u8])).to eq 0x01010101
+      expect(ANSEL::Converter.arrint8_to_uint32([0x01.to_u8, 0x01.to_u8, 0x01.to_u8])).to eq 0x01010100
+      expect(ANSEL::Converter.arrint8_to_uint32([0x01.to_u8, 0x01.to_u8])).to eq 0x01010000
+      expect(ANSEL::Converter.arrint8_to_uint32([0x01.to_u8])).to eq 0x01000000
+    end
+  end
 
   describe "#convert" do
-
     it "does not convert ASCII characters" do
       expect(ANSEL::Converter.convert("\u0020")).to eq " "
       expect(ANSEL::Converter.convert("\u0078")).to eq "x"
     end
 
     it "converts invalid characters to the unicode replacement character" do
-      expect(ANSEL::Converter.convert("\u00BE", to_charset: "UTF-8")).to eq "�"
-      expect(ANSEL::Converter.convert("\u00D1", to_charset: "UTF-8")).to eq "�"
+      expect(ANSEL::Converter.convert(Slice[0xBE_u8], to_charset: "UTF-8")).to eq "�".to_slice
+      expect(ANSEL::Converter.convert(Slice[0xD1_u8], to_charset: "UTF-8")).to eq "�".to_slice
     end
 
     it "converts valid ANSEL characters to UTF-8 equivalents" do
       # ANSEL non-combining mappings
-      # TODO: These need to be shifted to be 00 prefixed.
-      expect(ANSEL::Converter.convert("\uA100", to_charset: "UTF-8")).to eq "Ł"
-      expect(ANSEL::Converter.convert("\uA200", to_charset: "UTF-8")).to eq "Ø"
-      expect(ANSEL::Converter.convert("\uA300", to_charset: "UTF-8")).to eq "Đ"
-      expect(ANSEL::Converter.convert("\uA400", to_charset: "UTF-8")).to eq "Þ"
-      expect(ANSEL::Converter.convert("\uA500", to_charset: "UTF-8")).to eq "Æ"
-      expect(ANSEL::Converter.convert("\uA600", to_charset: "UTF-8")).to eq "Œ"
-      expect(ANSEL::Converter.convert("\uA700", to_charset: "UTF-8")).to eq "ʹ"
-      expect(ANSEL::Converter.convert("\uA800", to_charset: "UTF-8")).to eq "·"
-      expect(ANSEL::Converter.convert("\uA900", to_charset: "UTF-8")).to eq "♭"
-      expect(ANSEL::Converter.convert("\uAA00", to_charset: "UTF-8")).to eq "®"
-      expect(ANSEL::Converter.convert("\uAB00", to_charset: "UTF-8")).to eq "±"
-      expect(ANSEL::Converter.convert("\uAB00", to_charset: "UTF-8")).to eq "±"
-      expect(ANSEL::Converter.convert("\uAC00", to_charset: "UTF-8")).to eq "Ơ"
-      expect(ANSEL::Converter.convert("\uAD00", to_charset: "UTF-8")).to eq "Ư"
-      expect(ANSEL::Converter.convert("\uAE00", to_charset: "UTF-8")).to eq "ʼ"
-      expect(ANSEL::Converter.convert("\uB000", to_charset: "UTF-8")).to eq "ʻ"
-      expect(ANSEL::Converter.convert("\uB100", to_charset: "UTF-8")).to eq "ł"
-      expect(ANSEL::Converter.convert("\uB200", to_charset: "UTF-8")).to eq "ø"
-      expect(ANSEL::Converter.convert("\uB300", to_charset: "UTF-8")).to eq "đ"
-      expect(ANSEL::Converter.convert("\uB400", to_charset: "UTF-8")).to eq "þ"
-      expect(ANSEL::Converter.convert("\uB500", to_charset: "UTF-8")).to eq "æ"
-      expect(ANSEL::Converter.convert("\uB600", to_charset: "UTF-8")).to eq "œ"
-      expect(ANSEL::Converter.convert("\uB700", to_charset: "UTF-8")).to eq "ʺ"
-      expect(ANSEL::Converter.convert("\uB800", to_charset: "UTF-8")).to eq "ı"
-      expect(ANSEL::Converter.convert("\uB900", to_charset: "UTF-8")).to eq "£"
-      expect(ANSEL::Converter.convert("\uBA00", to_charset: "UTF-8")).to eq "ð"
-      expect(ANSEL::Converter.convert("\uBC00", to_charset: "UTF-8")).to eq "ơ"
-      expect(ANSEL::Converter.convert("\uBD00", to_charset: "UTF-8")).to eq "ư"
-      expect(ANSEL::Converter.convert("\uC000", to_charset: "UTF-8")).to eq "°"
-      expect(ANSEL::Converter.convert("\uC100", to_charset: "UTF-8")).to eq "ℓ"
-      expect(ANSEL::Converter.convert("\uC200", to_charset: "UTF-8")).to eq "℗"
-      expect(ANSEL::Converter.convert("\uC300", to_charset: "UTF-8")).to eq "©"
-      expect(ANSEL::Converter.convert("\uC400", to_charset: "UTF-8")).to eq "♯"
-      expect(ANSEL::Converter.convert("\uC500", to_charset: "UTF-8")).to eq "¿"
-      expect(ANSEL::Converter.convert("\uC600", to_charset: "UTF-8")).to eq "¡"
-      expect(ANSEL::Converter.convert("\uC700", to_charset: "UTF-8")).to eq "ß"
-      expect(ANSEL::Converter.convert("\uC800", to_charset: "UTF-8")).to eq "€"
+      expect(ANSEL::Converter.convert(Slice[0xA1_u8], to_charset: "UTF-8")).to eq "Ł".to_slice
+      expect(ANSEL::Converter.convert(Slice[0xA2_u8], to_charset: "UTF-8")).to eq "Ø".to_slice
+      expect(ANSEL::Converter.convert(Slice[0xA3_u8], to_charset: "UTF-8")).to eq "Đ".to_slice
+      expect(ANSEL::Converter.convert(Slice[0xA4_u8], to_charset: "UTF-8")).to eq "Þ".to_slice
+      expect(ANSEL::Converter.convert(Slice[0xA5_u8], to_charset: "UTF-8")).to eq "Æ".to_slice
+      expect(ANSEL::Converter.convert(Slice[0xA6_u8], to_charset: "UTF-8")).to eq "Œ".to_slice
+      expect(ANSEL::Converter.convert(Slice[0xA7_u8], to_charset: "UTF-8")).to eq "ʹ".to_slice
+      expect(ANSEL::Converter.convert(Slice[0xA8_u8], to_charset: "UTF-8")).to eq "·".to_slice
+      expect(ANSEL::Converter.convert(Slice[0xA9_u8], to_charset: "UTF-8")).to eq "♭".to_slice
+      expect(ANSEL::Converter.convert(Slice[0xAA_u8], to_charset: "UTF-8")).to eq "®".to_slice
+      expect(ANSEL::Converter.convert(Slice[0xAB_u8], to_charset: "UTF-8")).to eq "±".to_slice
+      expect(ANSEL::Converter.convert(Slice[0xAB_u8], to_charset: "UTF-8")).to eq "±".to_slice
+      expect(ANSEL::Converter.convert(Slice[0xAC_u8], to_charset: "UTF-8")).to eq "Ơ".to_slice
+      expect(ANSEL::Converter.convert(Slice[0xAD_u8], to_charset: "UTF-8")).to eq "Ư".to_slice
+      expect(ANSEL::Converter.convert(Slice[0xAE_u8], to_charset: "UTF-8")).to eq "ʼ".to_slice
+      expect(ANSEL::Converter.convert(Slice[0xB0_u8], to_charset: "UTF-8")).to eq "ʻ".to_slice
+      expect(ANSEL::Converter.convert(Slice[0xB1_u8], to_charset: "UTF-8")).to eq "ł".to_slice
+      expect(ANSEL::Converter.convert(Slice[0xB2_u8], to_charset: "UTF-8")).to eq "ø".to_slice
+      expect(ANSEL::Converter.convert(Slice[0xB3_u8], to_charset: "UTF-8")).to eq "đ".to_slice
+      expect(ANSEL::Converter.convert(Slice[0xB4_u8], to_charset: "UTF-8")).to eq "þ".to_slice
+      expect(ANSEL::Converter.convert(Slice[0xB5_u8], to_charset: "UTF-8")).to eq "æ".to_slice
+      expect(ANSEL::Converter.convert(Slice[0xB6_u8], to_charset: "UTF-8")).to eq "œ".to_slice
+      expect(ANSEL::Converter.convert(Slice[0xB7_u8], to_charset: "UTF-8")).to eq "ʺ".to_slice
+      expect(ANSEL::Converter.convert(Slice[0xB8_u8], to_charset: "UTF-8")).to eq "ı".to_slice
+      expect(ANSEL::Converter.convert(Slice[0xB9_u8], to_charset: "UTF-8")).to eq "£".to_slice
+      expect(ANSEL::Converter.convert(Slice[0xBA_u8], to_charset: "UTF-8")).to eq "ð".to_slice
+      expect(ANSEL::Converter.convert(Slice[0xBC_u8], to_charset: "UTF-8")).to eq "ơ".to_slice
+      expect(ANSEL::Converter.convert(Slice[0xBD_u8], to_charset: "UTF-8")).to eq "ư".to_slice
+      expect(ANSEL::Converter.convert(Slice[0xC0_u8], to_charset: "UTF-8")).to eq "°".to_slice
+      expect(ANSEL::Converter.convert(Slice[0xC1_u8], to_charset: "UTF-8")).to eq "ℓ".to_slice
+      expect(ANSEL::Converter.convert(Slice[0xC2_u8], to_charset: "UTF-8")).to eq "℗".to_slice
+      expect(ANSEL::Converter.convert(Slice[0xC3_u8], to_charset: "UTF-8")).to eq "©".to_slice
+      expect(ANSEL::Converter.convert(Slice[0xC4_u8], to_charset: "UTF-8")).to eq "♯".to_slice
+      expect(ANSEL::Converter.convert(Slice[0xC5_u8], to_charset: "UTF-8")).to eq "¿".to_slice
+      expect(ANSEL::Converter.convert(Slice[0xC6_u8], to_charset: "UTF-8")).to eq "¡".to_slice
+      expect(ANSEL::Converter.convert(Slice[0xC7_u8], to_charset: "UTF-8")).to eq "ß".to_slice
+      expect(ANSEL::Converter.convert(Slice[0xC8_u8], to_charset: "UTF-8")).to eq "€".to_slice
 
       # ANSEL combining characters
-      expect(ANSEL::Converter.convert("\uE041", to_charset: "UTF-8")).to eq "Ả"
-      expect(ANSEL::Converter.convert("\uF64C", to_charset: "UTF-8")).to eq "Ḻ"
-      expect(ANSEL::Converter.convert("\u00F6", to_charset: "UTF-8")).to eq "̲"
-      expect(ANSEL::Converter.convert("\u00F9", to_charset: "UTF-8")).to eq "̮"
-      expect(ANSEL::Converter.convert("\uF948", to_charset: "UTF-8")).to eq "Ḫ"
-      expect(ANSEL::Converter.convert("\uF2E3\u0041", to_charset: "UTF-8")).to eq "Ậ"
-      expect(ANSEL::Converter.convert("\uF279", to_charset: "UTF-8")).to eq "ỵ"
-      expect(ANSEL::Converter.convert("\u00F2", to_charset: "UTF-8")).to eq "̣"
+      expect(ANSEL::Converter.convert(Slice[0xE0_u8, 0x41_u8], to_charset: "UTF-8")).to eq "Ả".to_slice
+      expect(ANSEL::Converter.convert(Slice[0xF6_u8, 0x4C_u8], to_charset: "UTF-8")).to eq "Ḻ".to_slice
+      expect(ANSEL::Converter.convert(Slice[0xF6_u8], to_charset: "UTF-8")).to eq "̲".to_slice
+      expect(ANSEL::Converter.convert(Slice[0xF9_u8], to_charset: "UTF-8")).to eq "̮".to_slice
+      expect(ANSEL::Converter.convert(Slice[0xF9_u8, 0x48_u8], to_charset: "UTF-8")).to eq "Ḫ".to_slice
+      expect(ANSEL::Converter.convert(Slice[0xF2_u8, 0xE3_u8, 0x41_u8], to_charset: "UTF-8")).to eq "Ậ".to_slice
+      expect(ANSEL::Converter.convert(Slice[0xF2_u8, 0x79_u8], to_charset: "UTF-8")).to eq "ỵ".to_slice
+      expect(ANSEL::Converter.convert(Slice[0xF2_u8], to_charset: "UTF-8")).to eq "̣".to_slice
     end
 
     it "converts full text correctly" do
       expect(ANSEL::Converter.convert("What is the question?", to_charset: "UTF-8")).to eq "What is the question?"
-      expect(ANSEL::Converter.convert("\u{C500}What is the question?", to_charset: "UTF-8")).to eq "¿What is the question?"
-      expect(ANSEL::Converter.convert("\u{C300} 1994", to_charset: "UTF-8")).to eq "© 1994"
-      expect(ANSEL::Converter.convert("\u{B900}4.59", to_charset: "UTF-8")).to eq "£4.59"
+      expect(ANSEL::Converter.convert("\u{00C5}What is the question?", to_charset: "UTF-8")).to eq "¿What is the question?"
+      expect(ANSEL::Converter.convert("\u{00C3} 1994", to_charset: "UTF-8")).to eq "© 1994"
+      expect(ANSEL::Converter.convert("\u{00B9}4.59", to_charset: "UTF-8")).to eq "£4.59"
     end
-
   end
-
 end
